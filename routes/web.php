@@ -10,7 +10,7 @@ use Laravel\Passport\Http\Controllers\DenyAuthorizationController;
 use Laravel\Passport\Http\Controllers\PersonalAccessTokenController;
 use Laravel\Passport\Http\Controllers\ScopeController;
 use Laravel\Passport\Http\Controllers\TransientTokenController;
-
+use App\Models\Post;
 Route::get('/', function () {
     return view('welcome');
 });
@@ -41,3 +41,19 @@ Route::group([
     Route::post('/personal-access-tokens', [PersonalAccessTokenController::class, 'store'])->name('personal-access-tokens.store');
     Route::delete('/personal-access-tokens/{token_id}', [PersonalAccessTokenController::class, 'destroy'])->name('personal-access-tokens.destroy');
 });
+
+Route::get('/posts', function () {
+    App::setLocale('es');
+ $post = Post::where('id', 2 )->first();
+ //update translation
+$post->update([
+    'title' => [
+        "es"=>"Hello World",
+        "nl"=>"Hello World",
+        "de"=>"Hello World",
+       
+    ]
+   
+]);
+});
+    

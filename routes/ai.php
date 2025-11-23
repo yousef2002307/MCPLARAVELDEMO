@@ -5,4 +5,6 @@ use Laravel\Mcp\Facades\Mcp;
 
 Mcp::oauthRoutes();
 
-Mcp::web('/currency', CurrencyServer::class)->middleware(['auth:api']);
+Mcp::web('/currency', CurrencyServer::class);
+
+// Mcp::web('/currency', CurrencyServer::class)->middleware(['auth:api']);
