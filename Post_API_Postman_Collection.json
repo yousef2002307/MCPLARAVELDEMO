@@ -1,0 +1,472 @@
+{
+    "info": {
+        "_postman_id": "post-api-collection-2025",
+        "name": "Laravel Post API - Complete Collection",
+        "description": "Complete API collection for Post CRUD operations with file upload support using Spatie Media Library",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Posts",
+            "item": [
+                {
+                    "name": "1. Get All Posts (Paginated)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "en",
+                                "type": "text",
+                                "description": "Language for translatable fields (en, ar, etc.)"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8000/api/posts?per_page=15&page=1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8000",
+                            "path": [
+                                "api",
+                                "posts"
+                            ],
+                            "query": [
+                                {
+                                    "key": "per_page",
+                                    "value": "15",
+                                    "description": "Number of items per page"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number"
+                                }
+                            ]
+                        },
+                        "description": "Retrieve all posts with pagination support"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "2. Get Single Post",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "en",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8000/api/posts/1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8000",
+                            "path": [
+                                "api",
+                                "posts",
+                                "1"
+                            ]
+                        },
+                        "description": "Retrieve a single post by ID"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3. Create Post (Simple - Single Language)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "en",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "title",
+                                    "value": "My First Post",
+                                    "description": "Post title (string)",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "body",
+                                    "value": "This is the content of my first post. It can be a long text with multiple paragraphs.",
+                                    "description": "Post content (string)",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "main_image",
+                                    "description": "Main image file (jpeg, png, jpg, gif, webp - max 5MB)",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "gallery[]",
+                                    "description": "Gallery image 1 (optional)",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "gallery[]",
+                                    "description": "Gallery image 2 (optional)",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "http://localhost:8000/api/posts",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8000",
+                            "path": [
+                                "api",
+                                "posts"
+                            ]
+                        },
+                        "description": "Create a new post with single language content and optional file uploads"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "4. Create Post (Multi-Language)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "en",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "title[en]",
+                                    "value": "My First Post",
+                                    "description": "English title",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "title[ar]",
+                                    "value": "منشوري الأول",
+                                    "description": "Arabic title",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "body[en]",
+                                    "value": "This is the content of my first post in English.",
+                                    "description": "English content",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "body[ar]",
+                                    "value": "هذا هو محتوى منشوري الأول باللغة العربية.",
+                                    "description": "Arabic content",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "main_image",
+                                    "description": "Main image file",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "gallery[]",
+                                    "description": "Gallery image 1",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "gallery[]",
+                                    "description": "Gallery image 2",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "http://localhost:8000/api/posts",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8000",
+                            "path": [
+                                "api",
+                                "posts"
+                            ]
+                        },
+                        "description": "Create a new post with multi-language support (translatable fields)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5. Update Post (Simple)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "en",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "title",
+                                    "value": "Updated Post Title",
+                                    "description": "Updated title",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "body",
+                                    "value": "This is the updated content of the post.",
+                                    "description": "Updated content",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "main_image",
+                                    "description": "New main image (optional)",
+                                    "type": "file",
+                                    "src": [],
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "gallery[]",
+                                    "description": "New gallery image 1 (optional)",
+                                    "type": "file",
+                                    "src": [],
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "http://localhost:8000/api/posts/1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8000",
+                            "path": [
+                                "api",
+                                "posts",
+                                "1"
+                            ]
+                        },
+                        "description": "Update an existing post (change ID in URL)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "6. Update Post (With Media Management)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "en",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "title",
+                                    "value": "Updated Post with Media Management",
+                                    "description": "Updated title",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "body",
+                                    "value": "Updated content with media management options.",
+                                    "description": "Updated content",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "main_image",
+                                    "description": "New main image (replaces old one)",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "gallery[]",
+                                    "description": "New gallery image 1",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "gallery[]",
+                                    "description": "New gallery image 2",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "replace_gallery",
+                                    "value": "false",
+                                    "description": "Set to 'true' to replace all gallery images, 'false' to add to existing",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "delete_gallery_ids[]",
+                                    "value": "2",
+                                    "description": "Media ID to delete (can add multiple)",
+                                    "type": "text",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "delete_gallery_ids[]",
+                                    "value": "3",
+                                    "description": "Another media ID to delete",
+                                    "type": "text",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "http://localhost:8000/api/posts/1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8000",
+                            "path": [
+                                "api",
+                                "posts",
+                                "1"
+                            ]
+                        },
+                        "description": "Update post with advanced media management (delete specific images, replace gallery, etc.)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "7. Delete Post",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "en",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8000/api/posts/1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8000",
+                            "path": [
+                                "api",
+                                "posts",
+                                "1"
+                            ]
+                        },
+                        "description": "Delete a post by ID (all associated media will be deleted automatically)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "8. Delete Specific Media",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "en",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8000/api/posts/1/media/5",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8000",
+                            "path": [
+                                "api",
+                                "posts",
+                                "1",
+                                "media",
+                                "5"
+                            ]
+                        },
+                        "description": "Delete a specific media item from a post (postId=1, mediaId=5)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Complete CRUD operations for Posts with file upload support"
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000",
+            "type": "string"
+        },
+        {
+            "key": "api_prefix",
+            "value": "api",
+            "type": "string"
+        }
+    ]
+}
