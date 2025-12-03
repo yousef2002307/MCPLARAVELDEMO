@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PostController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Middleware\AcceptLanguageMiddleware;
 
 Route::get('/user', function (Request $request) {
@@ -28,4 +29,28 @@ Route::prefix('posts')->middleware(AcceptLanguageMiddleware::class)->group(funct
     
     // Delete a specific media item from a post
     Route::delete('/{postId}/media/{mediaId}', [PostController::class, 'deleteMedia']);
+});
+
+// Notification Routes (requires authentication)
+Route::prefix('notifications')->group(function () {
+    // Get all notifications
+    Route::get('/', [NotificationController::class, 'index']);
+    
+    // Get unread notifications only
+    Route::get('/unread', [NotificationController::class, 'unread']);
+    
+    // Get notification statistics
+    Route::get('/stats', [NotificationController::class, 'stats']);
+    
+    // Mark a specific notification as read
+    Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']);
+    
+    // Mark all notifications as read
+    Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    
+    // Delete a specific notification
+    Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    
+    // Delete all read notifications
+    Route::delete('/read/all', [NotificationController::class, 'deleteAllRead']);
 });

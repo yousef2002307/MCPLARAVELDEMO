@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravel Notifications Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .notification-badge {
+            position: relative;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .notification-badge:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .badge-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .actions {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .actions h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #ff4757;
+        }
+
+        .btn-danger:hover {
+            background: #ff3838;
+        }
+
+        .notifications-list {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .notifications-list h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .notification-item {
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .notification-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification-item.unread {
+            border-left-color: #ff4757;
+            background: #fff5f5;
+        }
+
+        .notification-message {
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .notification-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .notification-time {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab:hover {
+            background: #764ba2;
+            border-color: #764ba2;
+            color: white;
+        }
+
+        #token-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        #token-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔔 Notifications Dashboard</h1>
+            <div class="notification-badge" onclick="loadNotifications()">
+                Notifications
+                <span class="badge-count" id="badge-count">0</span>
+            </div>
+        </div>
+
+        <!-- Token Input -->
+        <div class="actions">
+            <h2>Authentication</h2>
+            <input type="text" id="token-input" placeholder="Enter your Bearer token here..." />
+            <button class="btn" onclick="saveToken()">Save Token</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3 id="total-count">0</h3>
+                <p>Total Notifications</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="unread-count">0</h3>
+                <p>Unread</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="read-count">0</h3>
+                <p>Read</p>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <h2>Quick Actions</h2>
+            <button class="btn" onclick="loadNotifications()">🔄 Refresh</button>
+            <button class="btn" onclick="markAllAsRead()">✓ Mark All as Read</button>
+            <button class="btn btn-danger" onclick="deleteAllRead()">🗑️ Delete All Read</button>
+            <button class="btn" onclick="loadStats()">📊 Update Stats</button>
+        </div>
+
+        <!-- Notifications List -->
+        <div class="notifications-list">
+            <h2>Notifications</h2>
+            
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <div class="tab active" onclick="setFilter('all')">All</div>
+                <div class="tab" onclick="setFilter('unread')">Unread Only</div>
+            </div>
+
+            <div id="notifications-container">
+                <div class="loading">Loading notifications...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost/api';
+        let currentFilter = 'all';
+        let authToken = localStorage.getItem('auth_token') || '';
+
+        // Set token from localStorage on load
+        if (authToken) {
+            document.getElementById('token-input').value = authToken;
+        }
+
+        // Save token to localStorage
+        function saveToken() {
+            authToken = document.getElementById('token-input').value.trim();
+            localStorage.setItem('auth_token', authToken);
+            alert('Token saved! Now you can use the notification features.');
+            loadStats();
+            loadNotifications();
+        }
+
+        // API Helper
+        async function apiCall(endpoint, method = 'GET') {
+            if (!authToken) {
+                alert('Please enter your authentication token first!');
+                return null;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    method,
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Accept': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                alert(`Error: ${error.message}`);
+                return null;
+            }
+        }
+
+        // Load Statistics
+        async function loadStats() {
+            const data = await apiCall('/notifications/stats');
+            if (data && data.success) {
+                document.getElementById('total-count').textContent = data.data.total_notifications;
+                document.getElementById('unread-count').textContent = data.data.unread_count;
+                document.getElementById('read-count').textContent = data.data.read_count;
+                document.getElementById('badge-count').textContent = data.data.unread_count;
+            }
+        }
+
+        // Load Notifications
+        async function loadNotifications() {
+            const container = document.getElementById('notifications-container');
+            container.innerHTML = '<div class="loading">Loading notifications...</div>';
+
+            const endpoint = currentFilter === 'unread' ? '/notifications/unread' : '/notifications';
+            const data = await apiCall(endpoint);
+
+            if (data && data.success) {
+                displayNotifications(data.data.data);
+                loadStats(); // Update stats
+            }
+        }
+
+        // Display Notifications
+        function displayNotifications(notifications) {
+            const container = document.getElementById('notifications-container');
+
+            if (notifications.length === 0) {
+                container.innerHTML = '<div class="empty-state">No notifications found</div>';
+                return;
+            }
+
+            const html = notifications.map(notification => {
+                const isUnread = !notification.read_at;
+                const message = notification.data.message || 'No message';
+                const time = new Date(notification.created_at).toLocaleString();
+
+                return `
+                    <div class="notification-item ${isUnread ? 'unread' : ''}">
+                        <div class="notification-message">${message}</div>
+                        <div class="notification-meta">
+                            <span class="notification-time">
+                                ${isUnread ? '🔴 ' : ''}${time}
+                            </span>
+                            <div class="notification-actions">
+                                ${isUnread ? `
+                                    <button class="btn btn-small" onclick="markAsRead('${notification.id}')">
+                                        Mark as Read
+                                    </button>
+                                ` : ''}
+                                <button class="btn btn-small btn-danger" onclick="deleteNotification('${notification.id}')">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Mark as Read
+        async function markAsRead(notificationId) {
+            const data = await apiCall(`/notifications/${notificationId}/read`, 'PATCH');
+            if (data && data.success) {
+                loadNotifications();
+            }
+        }
+
+        // Mark All as Read
+        async function markAllAsRead() {
+            if (!confirm('Mark all notifications as read?')) return;
+
+            const data = await apiCall('/notifications/mark-all-read', 'POST');
+            if (data && data.success) {
+                loadNotifications();
+                alert('All notifications marked as read!');
+            }
+        }
+
+        // Delete Notification
+        async function deleteNotification(notificationId) {
+            if (!confirm('Delete this notification?')) return;
+
+            const data = await apiCall(`/notifications/${notificationId}`, 'DELETE');
+            if (data && data.success) {
+                loadNotifications();
+            }
+        }
+
+        // Delete All Read
+        async function deleteAllRead() {
+            if (!confirm('Delete all read notifications?')) return;
+
+            const data = await apiCall('/notifications/read/all', 'DELETE');
+            if (data && data.success) {
+                loadNotifications();
+                alert('All read notifications deleted!');
+            }
+        }
+
+        // Set Filter
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            loadNotifications();
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            if (authToken) {
+                loadStats();
+            }
+        }, 30000);
+
+        // Initial load
+        if (authToken) {
+            loadStats();
+            loadNotifications();
+        }
+    </script>
+</body>
+</html>

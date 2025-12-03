@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PostRequest;
 use App\Models\Post;
+use App\Models\User;
+use App\Notifications\NewPostCreated;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class PostController extends Controller
 {
@@ -46,7 +49,7 @@ class PostController extends Controller
     /**
      * Store a newly created post.
      */
-    public function store(PostRequest $request): JsonResponse
+    public function store(PostRequest $request)
     {
         DB::beginTransaction();
         try {
@@ -70,10 +73,29 @@ class PostController extends Controller
                 }
             }
 
+            // Handle video upload
+            if ($request->hasFile('video')) {
+                $post->addMediaFromRequest('video')
+                    ->toMediaCollection('video');
+            }
+
+            // Handle video gallery upload
+            if ($request->hasFile('video_gallery')) {
+                foreach ($request->file('video_gallery') as $video) {
+                    $post->addMedia($video)
+                        ->toMediaCollection('video_gallery');
+                }
+            }
+
             DB::commit();
 
             // Load media relationships
             $post->load('media');
+
+            // Send notification to all users
+            $users = User::find(1);
+            
+            Notification::send($users, new NewPostCreated($post));
 
             return response()->json([
                 'success' => true,
@@ -164,6 +186,47 @@ class PostController extends Controller
                     foreach ($deleteIds as $mediaId) {
                         $media = $post->media()->find($mediaId);
                         if ($media) {
+                            $media->delete();
+                        }
+                    }
+                }
+            }
+
+            // Handle video update
+            if ($request->hasFile('video')) {
+                // Clear existing video
+                $post->clearMediaCollection('video');
+                // Add new video
+                $post->addMediaFromRequest('video')
+                    ->toMediaCollection('video');
+            }
+
+            // Handle video deletion
+            if ($request->input('delete_video', false)) {
+                $post->clearMediaCollection('video');
+            }
+
+            // Handle video gallery update
+            if ($request->hasFile('video_gallery')) {
+                // Optionally clear existing video gallery
+                if ($request->input('replace_video_gallery', false)) {
+                    $post->clearMediaCollection('video_gallery');
+                }
+                
+                // Add new video gallery items
+                foreach ($request->file('video_gallery') as $video) {
+                    $post->addMedia($video)
+                        ->toMediaCollection('video_gallery');
+                }
+            }
+
+            // Handle video gallery deletion by IDs
+            if ($request->has('delete_video_gallery_ids')) {
+                $deleteIds = $request->input('delete_video_gallery_ids');
+                if (is_array($deleteIds)) {
+                    foreach ($deleteIds as $mediaId) {
+                        $media = $post->media()->find($mediaId);
+                        if ($media && $media->collection_name === 'video_gallery') {
                             $media->delete();
                         }
                     }
@@ -294,6 +357,22 @@ class PostController extends Controller
                     'thumb_url' => $media->getUrl('thumb'),
                     'name' => $media->file_name,
                     'size' => $media->size,
+                ];
+            }),
+            'video' => $post->getFirstMedia('video') ? [
+                'id' => $post->getFirstMedia('video')->id,
+                'url' => $post->getFirstMedia('video')->getUrl(),
+                'name' => $post->getFirstMedia('video')->file_name,
+                'size' => $post->getFirstMedia('video')->size,
+                'mime_type' => $post->getFirstMedia('video')->mime_type,
+            ] : null,
+            'video_gallery' => $post->getMedia('video_gallery')->map(function ($media) {
+                return [
+                    'id' => $media->id,
+                    'url' => $media->getUrl(),
+                    'name' => $media->file_name,
+                    'size' => $media->size,
+                    'mime_type' => $media->mime_type,
                 ];
             }),
         ];

@@ -25,6 +25,15 @@ class Post extends Model implements HasMedia
 
         // صور إضافية متعددة
         $this->addMediaCollection('gallery');
+
+        // فيديو واحد
+        $this->addMediaCollection('video')
+            ->singleFile()
+            ->acceptsMimeTypes(['video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo', 'video/webm']);
+
+        // معرض فيديوهات متعددة
+        $this->addMediaCollection('video_gallery')
+            ->acceptsMimeTypes(['video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo', 'video/webm']);
     }
 
     public function registerMediaConversions(\Spatie\MediaLibrary\MediaCollections\Models\Media $media = null): void
