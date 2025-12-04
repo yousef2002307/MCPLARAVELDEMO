@@ -31,6 +31,15 @@ Route::prefix('posts')->middleware(AcceptLanguageMiddleware::class)->group(funct
     Route::delete('/{postId}/media/{mediaId}', [PostController::class, 'deleteMedia']);
 });
 
+// Chunked Video Upload Routes
+Route::prefix('chunked-upload')->middleware(AcceptLanguageMiddleware::class)->group(function () {
+    // Upload video chunks
+    Route::post('/video', [\App\Http\Controllers\Api\ChunkedVideoController::class, 'upload']);
+    
+    // Complete upload and attach to post
+    Route::post('/video/complete', [\App\Http\Controllers\Api\ChunkedVideoController::class, 'complete']);
+});
+
 // Notification Routes (requires authentication)
 Route::prefix('notifications')->group(function () {
     // Get all notifications

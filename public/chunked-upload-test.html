@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chunked Video Upload - Test Page</title>
+    <script src="https://cdn.jsdelivr.net/npm/resumablejs@1.1.0/resumable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .upload-area {
+            border: 3px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 60px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #f8fafc;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f1f5f9;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .upload-text {
+            font-size: 18px;
+            color: #475569;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .selected-file {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .selected-file.show {
+            display: flex;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .file-size {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .remove-file {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .remove-file:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 24px;
+        }
+
+        .progress-container.show {
+            display: block;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .progress-bar-bg {
+            background: #e2e8f0;
+            height: 12px;
+            border-radius: 100px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 100px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 24px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .video-preview {
+            margin-top: 24px;
+            display: none;
+        }
+
+        .video-preview.show {
+            display: block;
+        }
+
+        .video-preview video {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .chunk-info {
+            background: #f1f5f9;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #475569;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎬 Chunked Video Upload</h1>
+        <p class="subtitle">Upload large videos with progress tracking and resume capability</p>
+
+        <div class="form-group">
+            <label for="postSelect">Select Post</label>
+            <select id="postSelect">
+                <option value="">Loading posts...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="collectionSelect">Video Collection Type</label>
+            <select id="collectionSelect">
+                <option value="video">Single Video (replaces existing)</option>
+                <option value="video_gallery">Video Gallery (multiple videos)</option>
+            </select>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📹</div>
+            <div class="upload-text">Click to browse or drag & drop video</div>
+            <div class="upload-hint">Supports MP4, MOV, AVI, WebM - Any size</div>
+            <input type="file" id="fileInput" class="file-input" accept="video/*">
+        </div>
+
+        <div class="selected-file" id="selectedFile">
+            <div class="file-info">
+                <div class="file-name" id="fileName"></div>
+                <div class="file-size" id="fileSize"></div>
+            </div>
+            <button class="remove-file" id="removeFile">×</button>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-header">
+                <span>Uploading...</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-stats">
+                <span id="uploadSpeed">Speed: 0 MB/s</span>
+                <span id="uploadedSize">0 MB / 0 MB</span>
+            </div>
+            <div class="chunk-info" id="chunkInfo">
+                Chunk size: 1 MB | Total chunks: 0 | Uploaded: 0
+            </div>
+        </div>
+
+        <button class="btn" id="uploadBtn" disabled>
+            Select a video to upload
+        </button>
+
+        <div class="alert alert-success" id="successAlert"></div>
+        <div class="alert alert-error" id="errorAlert"></div>
+        <div class="alert alert-info" id="infoAlert"></div>
+
+        <div class="video-preview" id="videoPreview">
+            <video controls id="previewVideo"></video>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let selectedFile = null;
+        let resumable = null;
+        let uploadedFilename = null;
+
+        // DOM Elements
+        const postSelect = document.getElementById('postSelect');
+        const collectionSelect = document.getElementById('collectionSelect');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const selectedFileDiv = document.getElementById('selectedFile');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const removeFileBtn = document.getElementById('removeFile');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+        const uploadSpeed = document.getElementById('uploadSpeed');
+        const uploadedSize = document.getElementById('uploadedSize');
+        const chunkInfo = document.getElementById('chunkInfo');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+        const infoAlert = document.getElementById('infoAlert');
+        const videoPreview = document.getElementById('videoPreview');
+        const previewVideo = document.getElementById('previewVideo');
+
+        // Initialize Resumable.js
+        function initResumable() {
+            resumable = new Resumable({
+                target: `${API_BASE}/chunked-upload/video`,
+                chunkSize: 1 * 1024 * 1024, // 1MB chunks
+                simultaneousUploads: 3,
+                testChunks: false,
+                throttleProgressCallbacks: 1,
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+
+            resumable.assignBrowse(uploadArea);
+            resumable.assignDrop(uploadArea);
+
+            // File added event
+            resumable.on('fileAdded', function (file) {
+                selectedFile = file;
+                fileName.textContent = file.fileName;
+                fileSize.textContent = formatFileSize(file.size);
+                selectedFileDiv.classList.add('show');
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Start Upload';
+
+                const totalChunks = Math.ceil(file.size / resumable.opts.chunkSize);
+                chunkInfo.textContent = `Chunk size: 1 MB | Total chunks: ${totalChunks} | Uploaded: 0`;
+
+                hideAllAlerts();
+            });
+
+            // Progress event
+            resumable.on('fileProgress', function (file) {
+                const progress = Math.floor(file.progress() * 100);
+                progressBar.style.width = progress + '%';
+                progressPercent.textContent = progress + '%';
+
+                const uploaded = file.size * file.progress();
+                uploadedSize.textContent = `${formatFileSize(uploaded)} / ${formatFileSize(file.size)}`;
+
+                const totalChunks = Math.ceil(file.size / resumable.opts.chunkSize);
+                const uploadedChunks = Math.floor(totalChunks * file.progress());
+                chunkInfo.textContent = `Chunk size: 1 MB | Total chunks: ${totalChunks} | Uploaded: ${uploadedChunks}`;
+            });
+
+            // Success event
+            resumable.on('fileSuccess', function (file, message) {
+                try {
+                    const response = JSON.parse(message);
+                    if (response.success && response.data.filename) {
+                        uploadedFilename = response.data.filename;
+                        completeUpload();
+                    }
+                } catch (e) {
+                    showError('Error parsing server response');
+                }
+            });
+
+            // Error event
+            resumable.on('fileError', function (file, message) {
+                showError('Upload failed: ' + message);
+                resetUpload();
+            });
+        }
+
+        // Load posts from API
+        async function loadPosts() {
+            try {
+                const response = await fetch(`${API_BASE}/posts`);
+                const data = await response.json();
+
+                if (data.success && data.data.data) {
+                    postSelect.innerHTML = '<option value="">Select a post...</option>';
+                    data.data.data.forEach(post => {
+                        const option = document.createElement('option');
+                        option.value = post.id;
+                        option.textContent = `${post.id} - ${post.title.en || post.title}`;
+                        postSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                postSelect.innerHTML = '<option value="">Error loading posts</option>';
+                showError('Failed to load posts: ' + error.message);
+            }
+        }
+
+        // Complete upload and attach to post
+        async function completeUpload() {
+            const postId = postSelect.value;
+            const collection = collectionSelect.value;
+
+            if (!postId) {
+                showError('Please select a post');
+                return;
+            }
+
+            showInfo('Finalizing upload and attaching to post...');
+
+            try {
+                const response = await fetch(`${API_BASE}/chunked-upload/video/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        post_id: postId,
+                        filename: uploadedFilename,
+                        collection: collection
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess(`Video uploaded successfully! Media ID: ${data.data.media_id}`);
+                    previewVideo.src = data.data.media_url;
+                    videoPreview.classList.add('show');
+                    resetUpload();
+                } else {
+                    showError(data.message || 'Failed to attach video to post');
+                    resetUpload();
+                }
+            } catch (error) {
+                showError('Error completing upload: ' + error.message);
+                resetUpload();
+            }
+        }
+
+        // Upload button click
+        uploadBtn.addEventListener('click', function () {
+            if (!postSelect.value) {
+                showError('Please select a post first');
+                return;
+            }
+
+            if (selectedFile && !resumable.isUploading()) {
+                progressContainer.classList.add('show');
+                uploadBtn.innerHTML = '<span class="loading-spinner"></span>Uploading...';
+                uploadBtn.disabled = true;
+                resumable.upload();
+            }
+        });
+
+        // Remove file button
+        removeFileBtn.addEventListener('click', function () {
+            resetUpload();
+        });
+
+        // Drag and drop events
+        uploadArea.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function () {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function () {
+            uploadArea.classList.remove('dragover');
+        });
+
+        // Click to browse
+        uploadArea.addEventListener('click', function () {
+            fileInput.click();
+        });
+
+        // Helper functions
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function resetUpload() {
+            if (resumable) {
+                resumable.cancel();
+            }
+            selectedFile = null;
+            uploadedFilename = null;
+            selectedFileDiv.classList.remove('show');
+            progressContainer.classList.remove('show');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Select a video to upload';
+            progressBar.style.width = '0%';
+            progressPercent.textContent = '0%';
+            uploadedSize.textContent = '0 MB / 0 MB';
+            uploadSpeed.textContent = 'Speed: 0 MB/s';
+        }
+
+        function showSuccess(message) {
+            hideAllAlerts();
+            successAlert.textContent = '✓ ' + message;
+            successAlert.classList.add('show');
+        }
+
+        function showError(message) {
+            hideAllAlerts();
+            errorAlert.textContent = '✗ ' + message;
+            errorAlert.classList.add('show');
+        }
+
+        function showInfo(message) {
+            hideAllAlerts();
+            infoAlert.textContent = 'ℹ ' + message;
+            infoAlert.classList.add('show');
+        }
+
+        function hideAllAlerts() {
+            successAlert.classList.remove('show');
+            errorAlert.classList.remove('show');
+            infoAlert.classList.remove('show');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            initResumable();
+            loadPosts();
+        });
+    </script>
+</body>
+
+</html>
