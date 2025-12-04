@@ -87,6 +87,22 @@ class PostController extends Controller
                 }
             }
 
+            // Handle temporary videos from chunked upload
+            if ($request->has('temp_videos')) {
+                $tempVideos = $request->input('temp_videos');
+                if (is_array($tempVideos)) {
+                    foreach ($tempVideos as $filename) {
+                        $tempPath = storage_path('app/public/temp-videos/' . $filename);
+                        if (file_exists($tempPath)) {
+                            $post->addMedia($tempPath)
+                                ->toMediaCollection('video_gallery');
+                            // Delete temp file after adding to media library
+                            @unlink($tempPath);
+                        }
+                    }
+                }
+            }
+
             DB::commit();
 
             // Load media relationships
@@ -217,6 +233,22 @@ class PostController extends Controller
                 foreach ($request->file('video_gallery') as $video) {
                     $post->addMedia($video)
                         ->toMediaCollection('video_gallery');
+                }
+            }
+
+            // Handle temporary videos from chunked upload
+            if ($request->has('temp_videos')) {
+                $tempVideos = $request->input('temp_videos');
+                if (is_array($tempVideos)) {
+                    foreach ($tempVideos as $filename) {
+                        $tempPath = storage_path('app/public/temp-videos/' . $filename);
+                        if (file_exists($tempPath)) {
+                            $post->addMedia($tempPath)
+                                ->toMediaCollection('video_gallery');
+                            // Delete temp file after adding to media library
+                            @unlink($tempPath);
+                        }
+                    }
                 }
             }
 

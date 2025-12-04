@@ -60,6 +60,10 @@ class PostRequest extends FormRequest
             // Optional: Array of media IDs to delete from video gallery
             'delete_video_gallery_ids' => 'nullable|array',
             'delete_video_gallery_ids.*' => 'integer|exists:media,id',
+            
+            // Temporary videos from chunked upload
+            'temp_videos' => 'nullable|array',
+            'temp_videos.*' => 'string',
         ];
 
         return $rules;
